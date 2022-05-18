@@ -7,7 +7,7 @@ In order to create it you can use the following command:
 and the activate it
 `source .env/bin/activate`
 and install the requirements
-`pip install requirements.txt`
+`pip install -r  requirements.txt`
 then you should export your arkindex token as environment variables
 ```
 export ARKINDEX_API_TOKEN=<your token>
