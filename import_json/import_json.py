@@ -3,8 +3,8 @@ import argparse
 from arkindex import ArkindexClient, options_from_env
 from apistar.exceptions import ErrorResponse
 import logging
-import tqdm
-
+from tqdm import tqdm
+import json
 
 # create an arkindex client
 ark_client = ArkindexClient()
@@ -19,22 +19,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# TODO: add function that parses the json file and itterates over the acts
+# file = "/home/reignier/Bureau/Himanis/Essai_1_JJ35.json"
+
+
 def parse_json(json_file):
-    # TODO: get the acts in order to itterate over them
-    for act in tqdm(acts):
-        # get the volume's arkindex id of the act
-        volume_id = get_volume_id(act["Volume"])
-        if volume_id:
-            # now we have to get the page that is in this volume that has the same name as the Folio_start attribute in the json file
-            page = get_page(volume_id, act["Folio_start"])
-            if page:
-                # not sure if you want the name of the element to be act["Act_N"] or the name starting with Acte_xx so this is up to you to decide
-                push_element(page, act["Act_N"], act["Text_Region"])
-            else:
-                continue
-        else:
-            continue
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+    for registre in data:
+        acts = data[registre]
+        for dict in tqdm(acts):
+            for acte in dict:
+                act = dict[acte]
+                # get the volume's arkindex id of the act
+                volume_id = get_volume_id(act["Volume"])
+                if volume_id:
+                    # now we have to get the page that is in this volume that has the same name as the Folio_start attribute in the json file
+                    page = get_page(volume_id, act["Folio_start"])
+                    if page:
+                        # not sure if you want the name of the element to be act["Act_N"] or the name starting with Acte_xx so this is up to you to decide
+                        push_element(page, act["Act_N"], act["Text_Region"], act)
+                    else:
+                        continue
+                else:
+                    continue
+
+# parse_json(file)
+
 
 def get_volume_id(volume_name):
     """
@@ -43,7 +53,7 @@ def get_volume_id(volume_name):
     """
     if "JJ" in volume_name:
         volume_name = volume_name.replace("JJ", "JJ ")
-        volume_name = "France, Paris, Archives nationales, "+ volume_name
+        volume_name = "France, Paris, Archives nationales," + volume_name
     # try a request to the api to get the volume with the name volume_name
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElements
@@ -55,6 +65,7 @@ def get_volume_id(volume_name):
         if volume["name"] == volume_name:
             return volume['id']
     return None
+
 
 def get_page(volume_id, page_name):
     """
@@ -72,7 +83,8 @@ def get_page(volume_id, page_name):
             return page
     return None
 
-def push_element(page, act_name, json_act):
+
+def push_element(page, act_name, json_act, data):
     # create the element on the page
     # turn text representation of the coordinates into list of coordinates
     polygon = json_act["Graphical_coord"]
@@ -95,8 +107,15 @@ def push_element(page, act_name, json_act):
     except ErrorResponse as e:
         logger.error('Failed creating transcription on element {}: {} - {}'.format(
             element_id, e.status_code, e.content))
+    for e in data:
+        if e not in ["Volume", "Folio_start", "Act_N", "Text_Region"]:
+            # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
+            try:
+                metadata = ark_client("CreateMetaData", id=element['id'], body={"type":"text", "name":e, "value": data[e]})
+            except ErrorResponse as e:
+                logger.error('Failed creating transcription on element {}: {} - {}'.format(
+                    element_id, e.status_code, e.content))
 
-    # TODO: if you want to add other information like the date or the type of the act you can add them as metadata on the element using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData 
 
 def main():
     """Collect arguments and run."""
@@ -112,10 +131,12 @@ def main():
     args = vars(parser.parse_args())
     # log in on arkindex with your credentials
     ark_client.configure(**options_from_env())
-
-    
-
-
+    '''try:
+        # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElements
+        volumes = ark_client.paginate("ListElements", corpus=CORPUS_ID, body={"name": "France, Paris, Archives nationales JJ 035"})
+        print(volumes[0])
+    except:
+        print("erreur")'''
 
 
 if __name__ == '__main__':
