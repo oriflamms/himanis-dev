@@ -1,0 +1,41 @@
+{
+  "JJ035": [
+    {
+      "Acte_1": {
+        "Provisory_index_1": "1",
+        "Volume": "JJ035",
+        "Act_N": "1",
+        "Folio_start": "1r",
+        "VOL_FOL_START": "JJ035_1r",
+        "Folio_end": "",
+        "Language": "",
+        "Inventory_Name": "",
+        "Inventory_Nr": "",
+        "ImageStart_UPVLC_BVMM": "FRCHANJJ_JJ035_0016R_A.TIF",
+        "ImageStart_READ": "FRCHANJJ_JJ035_0016R_A.TIF",
+        "F": "",
+        "Provisory_index_2": 1.0,
+        "Text_Region": [
+          {
+            "Reference": "FRCHANJJ_JJ035_0016R_A",
+            "type_act": "AC",
+            "Region": "TextRegion_1501501260709_159",
+            "Graphical_coord": "2703,831 0,831 0,0 2703,0",
+            "Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ035/DEPOT/FRCHANJJ_JJ035_0016R_A/0,0,2704,832/600,/0/default.jpg",
+            "Texte": [
+              "bn",
+              "etc. pour cause certaine et neccessaire qui touche b'estat de nous et de tout nostre royaume, nous vous",
+              "mandons et commandons que vous soiez, sanz nul deffaut souffisanment appareli\u00e9 en armes et en chevaux, selonc",
+              "vostre estat, et selonc ce que vous deuez et en ontre si souffisant que nous nous en donons tenir pour bien paiez soiez \u00e0",
+              "arraz \u00e0 cest promver jour de juing prochain venant pour faire et acomplir diligeanment ce que vous sera commande",
+              "et enjoint de par nous. Donn\u00e9 \u00e0 Paris, le lundi empr\u00e8s l'invencion saincte Croiz mil trois cenz et deus",
+              "Jarturo de Britannia"
+            ]
+          }
+        ],
+        "Date": "1302",
+        "Regeste": "Without subject"
+      }
+    }
+	]
+}

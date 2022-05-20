@@ -19,8 +19,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# file = "/home/reignier/Bureau/Himanis/Essai_1_JJ35.json"
-
 
 def parse_json(json_file):
     with open(json_file, 'r') as f:
@@ -43,8 +41,6 @@ def parse_json(json_file):
                 else:
                     continue
 
-# parse_json(file)
-
 
 def get_volume_id(volume_name):
     """
@@ -53,11 +49,11 @@ def get_volume_id(volume_name):
     """
     if "JJ" in volume_name:
         volume_name = volume_name.replace("JJ", "JJ ")
-        volume_name = "France, Paris, Archives nationales," + volume_name
+        volume_name = "France, Paris, Archives nationales, " + volume_name
     # try a request to the api to get the volume with the name volume_name
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElements
-        volumes = ark_client.paginate("ListElements", corpus=CORPUS_ID, body={"name": volume_name})
+        volumes = ark_client.paginate("ListElements", corpus=CORPUS_ID, name=volume_name)
     except ErrorResponse as e:
         logger.error('Failed getting corpus elements {} with name {}: {} - {}'.format(
             CORPUS_ID, volume_name, e.status_code, e.content))
@@ -72,9 +68,11 @@ def get_page(volume_id, page_name):
     function that gets the page with the name page_name from volume with volume_id  
     """
     # try a request to the api to get the page with the name page_name
+    while len(page_name) != 4:
+        page_name = "0" + page_name
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElementChildren
-        pages = ark_client.paginate("ListElementChildren", id=volume_id, body={"name": page_name})
+        pages = ark_client.paginate("ListElementChildren", id=volume_id, name=page_name)
     except ErrorResponse as e:
         logger.error('Failed getting folder elements {} with name {}: {} - {}'.format(
             volume_id, page_name, e.status_code, e.content))
@@ -87,7 +85,7 @@ def get_page(volume_id, page_name):
 def push_element(page, act_name, json_act, data):
     # create the element on the page
     # turn text representation of the coordinates into list of coordinates
-    polygon = json_act["Graphical_coord"]
+    polygon = json_act[0]["Graphical_coord"]  # TODO : Gérer les cas avec plusieurs zones par acte
     polygon = polygon.split(" ")
     coordinates = []
     for coor in polygon:
@@ -95,23 +93,29 @@ def push_element(page, act_name, json_act, data):
         coordinates.append([int(coor[0]), int(coor[1])])
     # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
     try:
+        print({"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": polygon})
         element = ark_client("CreateElement", body={"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": polygon})
+        print(element)
     except ErrorResponse as e:
+        print("ERREUR")
         logger.error('Failed creating element {}: {} - {}'.format(
             act_name, e.status_code, e.content))
     # if the element was created, add transcription to the element
-    text = json_act["Texte"].join("\n")
+    print(json_act)
+    text = json_act[0]["Texte"].join("\n")
+    print("et là ?")
     # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateTranscription
     try:
-        transcription = ark_client("CreateTranscription", id= element['id'], body={"text": text})
+        transcription = ark_client("CreateTranscription", id=element['id'], body={"text": text})
     except ErrorResponse as e:
         logger.error('Failed creating transcription on element {}: {} - {}'.format(
             element_id, e.status_code, e.content))
+    print("pourtant ici ça marche non ?")
     for e in data:
         if e not in ["Volume", "Folio_start", "Act_N", "Text_Region"]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             try:
-                metadata = ark_client("CreateMetaData", id=element['id'], body={"type":"text", "name":e, "value": data[e]})
+                metadata = ark_client("CreateMetaData", id=element['id'], body={"type": "text", "name": e, "value": data[e]})
             except ErrorResponse as e:
                 logger.error('Failed creating transcription on element {}: {} - {}'.format(
                     element_id, e.status_code, e.content))
@@ -131,12 +135,10 @@ def main():
     args = vars(parser.parse_args())
     # log in on arkindex with your credentials
     ark_client.configure(**options_from_env())
-    '''try:
-        # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElements
-        volumes = ark_client.paginate("ListElements", corpus=CORPUS_ID, body={"name": "France, Paris, Archives nationales JJ 035"})
-        print(volumes[0])
+    try:
+        parse_json('/home/reignier/Bureau/Himanis/Essai_1_JJ35.json')
     except:
-        print("erreur")'''
+        print("erreur")
 
 
 if __name__ == '__main__':
