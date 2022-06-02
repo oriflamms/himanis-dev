@@ -10,7 +10,7 @@ import json
 ark_client = ArkindexClient()
 
 # The id of the Himanis corpus on Arkindex
-CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6"
+CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480"
 
 # logger configuration
 logging.basicConfig(
