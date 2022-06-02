@@ -136,7 +136,7 @@ def main():
     # log in on arkindex with your credentials
     ark_client.configure(**options_from_env())
     try:
-        parse_json('/home/reignier/Bureau/Himanis/Essai_1_JJ35.json')
+        parse_json('/home/reignier/Bureau/Himanis/Essai_1_JJ36.json')
     except:
         print("erreur")
 
