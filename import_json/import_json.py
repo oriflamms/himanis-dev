@@ -97,29 +97,27 @@ def push_element(page, act_name, json_act, data):
         coordinates.append([int(coor[0]), int(coor[1])])
     # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
     try:
-        print({"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": polygon})
-        element = ark_client("CreateElement", body={"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": polygon})
-        print(element)
+        body={"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": coordinates}
+        logger.info(f'creating element with body {body}')
+        element = ark_client.request("CreateElement", body=body)
     except ErrorResponse as e:
-        print("ERREUR")
-        logger.error('Failed creating element {}: {} - {}'.format(
-            act_name, e.status_code, e.content))
+        logger.error('Failed creating element {}: {} - {}'.format(act_name, e.status_code, e.content))
+        return
     # if the element was created, add transcription to the element
-    print(json_act)
-    text = json_act[0]["Texte"].join("\n")
-    print("et là ?")
+    text = '\n'.join(json_act[0]["Texte"])
+
     # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateTranscription
     try:
-        transcription = ark_client("CreateTranscription", id=element['id'], body={"text": text})
+        transcription = ark_client.request("CreateTranscription", id=element['id'], body={"text": text})
     except ErrorResponse as e:
         logger.error('Failed creating transcription on element {}: {} - {}'.format(
             element_id, e.status_code, e.content))
-    print("pourtant ici ça marche non ?")
+
     for e in data:
         if e not in ["Volume", "Folio_start", "Act_N", "Text_Region"]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             try:
-                metadata = ark_client("CreateMetaData", id=element['id'], body={"type": "text", "name": e, "value": data[e]})
+                metadata = ark_client.request("CreateMetaData", id=element['id'], body={"type": "text", "name": e, "value": data[e]})
             except ErrorResponse as e:
                 logger.error('Failed creating transcription on element {}: {} - {}'.format(
                     element_id, e.status_code, e.content))
