@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_json(json_file):
+    logger.info(f'parsing {json_file}')
     with open(json_file, 'r') as f:
         data = json.load(f)
     for registre in data:
@@ -29,7 +30,9 @@ def parse_json(json_file):
             for acte in dict:
                 act = dict[acte]
                 # get the volume's arkindex id of the act
+                logger.info(f'looking for act {act["Volume"]}')
                 volume_id = get_volume_id(act["Volume"])
+                logger.info(f'found id {volume_id}')
                 if volume_id:
                     # now we have to get the page that is in this volume that has the same name as the Folio_start attribute in the json file
                     page = get_page(volume_id, act["Folio_start"])
@@ -45,12 +48,13 @@ def parse_json(json_file):
 def get_volume_id(volume_name):
     """
     function that gets the volume's arkindex id of the act
-    input: volume_name the name of the 
+    input: volume_name the name of the
     """
     if "JJ" in volume_name:
         volume_name = volume_name.replace("JJ", "JJ ")
-        volume_name = "France, Paris, Archives nationales, " + volume_name
+        volume_name = "PARIS, Archives nationales, " + volume_name
     # try a request to the api to get the volume with the name volume_name
+    logger.info(f'complete name is {volume_name}')
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElements
         volumes = ark_client.paginate("ListElements", corpus=CORPUS_ID, name=volume_name)
@@ -65,7 +69,7 @@ def get_volume_id(volume_name):
 
 def get_page(volume_id, page_name):
     """
-    function that gets the page with the name page_name from volume with volume_id  
+    function that gets the page with the name page_name from volume with volume_id
     """
     # try a request to the api to get the page with the name page_name
     while len(page_name) != 4:
@@ -135,10 +139,8 @@ def main():
     args = vars(parser.parse_args())
     # log in on arkindex with your credentials
     ark_client.configure(**options_from_env())
-    try:
-        parse_json('/home/reignier/Bureau/Himanis/Essai_1_JJ36.json')
-    except:
-        print("erreur")
+    parse_json(args['json'])
+
 
 
 if __name__ == '__main__':
