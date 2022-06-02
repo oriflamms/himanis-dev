@@ -108,19 +108,22 @@ def push_element(page, act_name, json_act, data):
 
     # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateTranscription
     try:
+        logger.info(f'add transcription {text}')
         transcription = ark_client.request("CreateTranscription", id=element['id'], body={"text": text})
     except ErrorResponse as e:
         logger.error('Failed creating transcription on element {}: {} - {}'.format(
             element_id, e.status_code, e.content))
-
+        return
     for e in data:
         if e not in ["Volume", "Folio_start", "Act_N", "Text_Region"]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             try:
-                metadata = ark_client.request("CreateMetaData", id=element['id'], body={"type": "text", "name": e, "value": data[e]})
+                body={"type": "text", "name": e, "value": data[e]}
+                logger.info(f'creating metadata {body}')
+                metadata = ark_client.request("CreateMetaData", id=element['id'], body=body)
             except ErrorResponse as e:
-                logger.error('Failed creating transcription on element {}: {} - {}'.format(
-                    element_id, e.status_code, e.content))
+                logger.error('Failed creating metadata on element {}: {} - {}'.format(
+                    element['id'], e.status_code, e.content))
 
 
 def main():
