@@ -94,7 +94,12 @@ def push_element(page, act_name, json_act, data):
     coordinates = []
     for coor in polygon:
         coor = coor.split(",")
-        coordinates.append([int(coor[0]), int(coor[1])])
+        coor = [int(coor[0]), int(coor[1])]
+        dim = [max([t[0] for t in page["zone"]["polygon"]]), max([t[1] for t in page["zone"]["polygon"]])]
+        for t in range(0, 1):  # Check that the coordinates do not exceed the page
+            if coor[t] > dim[t]:
+                coor[t] = dim[t]
+        coordinates.append(coor)
     # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
     try:
         body={"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": coordinates}
@@ -115,7 +120,7 @@ def push_element(page, act_name, json_act, data):
             element_id, e.status_code, e.content))
         return
     for e in data:
-        if e not in ["Volume", "Folio_start", "Act_N", "Text_Region"]:
+        if e in ["Folio_start", "Folio_end", "Act_N", "Language", "Date", "Regeste"]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             try:
                 body={"type": "text", "name": e, "value": data[e]}
