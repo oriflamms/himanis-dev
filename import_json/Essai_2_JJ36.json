@@ -1,0 +1,58 @@
+{
+  "JJ036": [
+    {
+      "Acte_4": {
+        "Provisory_index_1": "230",
+        "Volume": "JJ036",
+        "Act_N": "4",
+        "Folio_start": "1r",
+        "VOL_FOL_START": "JJ036_1r",
+        "Folio_end": "1v",
+        "Language": "",
+        "Inventory_Name": "",
+        "Inventory_Nr": "",
+        "ImageStart_UPVLC_BVMM": "FRCHANJJ_JJ036_0002R_A.TIF",
+        "ImageStart_READ": "FRCHANJJ_JJ036_0002R_A.TIF",
+        "F": "",
+        "Provisory_index_2": 230.0,
+        "Text_Region": [
+          {
+            "Reference": "FRCHANJJ_JJ036_0002R_A",
+            "type_act": "AI",
+            "Region": "TextRegion_1501510195002_790",
+            "Graphical_coord": "2183,3083 0,3083 6,2046 2189,2046",
+            "Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ036/DEPOT/FRCHANJJ_JJ036_0002R_A/0,2046,2190,1038/600,/0/default.jpg",
+            "Texte": [
+              "finacia  ballivo Ambum.",
+              " al en",
+              "",
+              "ubditorum nostrorum incomodici queum permittit tempori condico apien",
+              "es occunere, vioro utilit tibus de benonitate regia providen. mandam ti",
+              "hbomines dilecti et fudes in eclesis qui non habent in bonis nostros libras per totum dul",
+              "taru librar cor valorem, quorum valorum mobilium somm i madingu librum tuni n",
+              "non encedit, ad eudem in presentem nostrum Landron excc in non complalas, quod ex",
+              "hujusmodi \u00e0 predicto certu ee presens haberi volumus exccsanos, illos aue quos feeu"
+            ]
+          },
+          {
+            "Reference": "FRCHANJJ_JJ036_0002V_A",
+            "type_act": "AF",
+            "Region": "TextRegion_1501510206002_793",
+            "Graphical_coord": "2153,610 6,610 0,0 2147,0",
+            "Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ036/DEPOT/FRCHANJJ_JJ036_0002V_A/0,0,2154,611/600,/0/default.jpg",
+            "Texte": [
+              "sibias in mobilibus vel ducentas in mobilibus et immobilibus modo procedicio haberi",
+              "insticir, ad eundum in hujusmodi exercitum sive vilacione compellas. Hanc autre",
+              "ordinacionem nostram ad finem primis, mensis nostre prime subvencionis servari",
+              "volumus et effectum habere tea quod financie per nos occasione hujusmodi prime subvencionis",
+              "eum gentibus nostris facere, pro mense predicto valeant et habeant roboris firmitatem. Actum",
+              "apud Vien, die jovrs post trnitatem, anno Domini m ccc. seanno."
+            ]
+          }
+        ],
+        "Date": "1303",
+        "Regeste": "Without subject"
+      }
+	}
+	]
+}
