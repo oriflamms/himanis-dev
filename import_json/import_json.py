@@ -37,8 +37,10 @@ def parse_json(json_file):
                     # now we have to get the page that is in this volume that has the same name as the Folio_start attribute in the json file
                     page = get_page(volume_id, act["Folio_start"])
                     if page:
-                        # not sure if you want the name of the element to be act["Act_N"] or the name starting with Acte_xx so this is up to you to decide
-                        push_element(page, act["Act_N"], act["Text_Region"], act)
+                        for region in act["Text_Region"]:
+                            None
+                            # not sure if you want the name of the element to be act["Act_N"] or the name starting with Acte_xx so this is up to you to decide
+                            #push_element(page, act["Act_N"], region, act)
                     else:
                         continue
                 else:
@@ -81,6 +83,7 @@ def get_page(volume_id, page_name):
         logger.error('Failed getting folder elements {} with name {}: {} - {}'.format(
             volume_id, page_name, e.status_code, e.content))
     for page in pages:
+        print(page['zone']['image']['url'])
         if page["name"] == page_name:
             return page
     return None
@@ -89,7 +92,7 @@ def get_page(volume_id, page_name):
 def push_element(page, act_name, json_act, data):
     # create the element on the page
     # turn text representation of the coordinates into list of coordinates
-    polygon = json_act[0]["Graphical_coord"]  # TODO : Gérer les cas avec plusieurs zones par acte
+    polygon = json_act["Graphical_coord"]  # TODO : Gérer les cas avec plusieurs zones par acte
     polygon = polygon.split(" ")
     coordinates = []
     for coor in polygon:
@@ -102,14 +105,14 @@ def push_element(page, act_name, json_act, data):
         coordinates.append(coor)
     # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
     try:
-        body={"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": coordinates}
+        body = {"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'], "image": page["zone"]["image"]["id"], "polygon": coordinates}
         logger.info(f'creating element with body {body}')
         element = ark_client.request("CreateElement", body=body)
     except ErrorResponse as e:
         logger.error('Failed creating element {}: {} - {}'.format(act_name, e.status_code, e.content))
         return
     # if the element was created, add transcription to the element
-    text = '\n'.join(json_act[0]["Texte"])
+    text = '\n'.join(json_act["Texte"])
 
     # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateTranscription
     try:
