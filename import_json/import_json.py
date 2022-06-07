@@ -38,9 +38,8 @@ def parse_json(json_file):
                     page = get_page(volume_id, act["Folio_start"])
                     if page:
                         for region in act["Text_Region"]:
-                            None
                             # not sure if you want the name of the element to be act["Act_N"] or the name starting with Acte_xx so this is up to you to decide
-                            #push_element(page, act["Act_N"], region, act)
+                            push_element(page, act["Act_N"], region, act)
                     else:
                         continue
                 else:
