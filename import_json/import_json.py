@@ -10,7 +10,7 @@ import json, csv
 ark_client = ArkindexClient()
 
 # The id of the Himanis corpus on Arkindex
-CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480"
+CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6"
 
 # Use a table to associate image to page name on Arkindex
 table = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
@@ -27,7 +27,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 def parse_json(json_file):
     logger.info(f'parsing {json_file}')
     with open(json_file, 'r') as f:
@@ -42,23 +41,29 @@ def parse_json(json_file):
                 volume_id = get_volume_id(act["Volume"])
                 logger.info(f'found id {volume_id}')
                 if volume_id:
-                    for region in act["Text_Region"]:
-                        address = region["Address_bvmm"].split(",")[0]  # Je sectionne l'url au niveau des coordonnées
-                        while address[-1] != "/":  # J'enlève tout ce qui précède le dernier slash
-                            address = address[:-1]
-                        address = address[:-1]  # J'enlève aussi le dernier slash
-                        folio = files[address]
-                        # now we have to get the page that is in this volume
-                        # that has the same name as the Folio_start attribute in the json file
+                    push_act(volume_id, act["Act_N"], act)  # D'abord je crée les actes
+                    for region in act["Text_Region"]:  # Puis je crée les zones d'images correspondant
+                        folio = get_folio(region["Address_bvmm"])
                         page = get_page(volume_id, folio)
-                        if page:
-                            # not sure if you want the name of the element to be act["Act_N"]
-                            # or the name starting with Acte_xx so this is up to you to decide
-                            push_element(page, act["Act_N"], region, act)
+                        act_parent = get_act(volume_id, act["Act_N"])
+                        if page and act_parent:
+                            push_zone(page, act["Act_N"], region, act_parent['id'])
                         else:
                             continue
                 else:
                     continue
+
+
+def get_folio(address_bvmm):
+    """
+    function that gives name of the folio on Arkindex with an url address
+    """
+    address = address_bvmm.split(",")[0]  # Je sectionne l'url au niveau des coordonnées
+    while address[-1] != "/":  # J'enlève tout ce qui précède le dernier slash
+        address = address[:-1]
+    address = address[:-1]  # J'enlève aussi le dernier slash
+    folio = files[address]
+    return folio
 
 
 def get_volume_id(volume_name):
@@ -68,7 +73,7 @@ def get_volume_id(volume_name):
     """
     if "JJ" in volume_name:
         volume_name = volume_name.replace("JJ", "JJ ")
-        volume_name = "PARIS, Archives nationales, " + volume_name
+        volume_name = "France, Paris, Archives nationales, " + volume_name
     # try a request to the api to get the volume with the name volume_name
     logger.info(f'complete name is {volume_name}')
     try:
@@ -97,16 +102,83 @@ def get_page(volume_id, page_name):
         logger.error('Failed getting folder elements {} with name {}: {} - {}'.format(
             volume_id, page_name, e.status_code, e.content))
     for page in pages:
-        print(page['zone']['image']['url'])
         if page["name"] == page_name:
             return page
     return None
 
 
-def push_element(page, act_name, json_act, data):
+def get_act(volume_id, act_name):
+    """
+    function that gets the act with the name act_name from page with page_id
+    """
+    # try a request to the api to get the act with the name act_name
+    try:
+        # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElementChildren
+        acts = ark_client.paginate("ListElementChildren", id=volume_id, name=act_name)
+    except ErrorResponse as e:
+        logger.error('Failed getting folder elements {} with name {}: {} - {}'.format(
+            volume_id, act_name, e.status_code, e.content))
+    for act in acts:
+        if act["name"] == act_name:
+            return act
+    return None
+
+
+def push_act(volume_id, act_name, data):
+    # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
+    try:
+        body = {"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": volume_id}
+        logger.info(f'creating element with body {body}')
+        element = ark_client.request("CreateElement", body=body)
+    except ErrorResponse as e:
+        logger.error('Failed creating element {}: {} - {}'.format(act_name, e.status_code, e.content))
+        return
+
+    for date in data["Date-normalisee"]:
+        if data["Date-normalisee"][0]["type"] == "when":
+            if date["year"]:  # Fonction pour construire ma forme iso
+                date["forme normalisee"] = str(date["year"])
+                if date["month"]:
+                    if len(str(date["month"])) == 1:
+                        date["month"] = "0" + str(date["month"])
+                    date["forme normalisee"] = date["forme normalisee"] + "-" + \
+                                               str(date["month"])
+                    if date["day"]:
+                        if len(str(date["day"])) == 1:
+                            date["day"] = "0" + str(date["day"])
+                        date["forme normalisee"] = date["forme normalisee"] + "-" + \
+                                                   str(date["day"])
+            else:
+                date["forme normalisee"] = None
+            data["Date"] = data["Date-normalisee"][0]["forme normalisee"]
+        else:
+            for extreme in data["Date-normalisee"]:
+                if extreme["type"] == "notBefore":
+                    debut = extreme["year"]
+                elif extreme["type"] == "notAfter":
+                    fin = extreme["year"]
+            data["Date"] = str(debut) + "-" + str(fin)
+
+    for e in data:
+        if e in ["Folio_start", "Folio_end", "Act_N", "Language", "Regeste", "Date"]:
+            # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
+            if e == "Date":
+                type = "date"
+            else:
+                type = "text"
+            try:
+                body = {"type": type, "name": e, "value": data[e]}
+                logger.info(f'creating metadata {body}')
+                metadata = ark_client.request("CreateMetaData", id=element['id'], body=body)
+            except ErrorResponse as e:
+                logger.error('Failed creating metadata on element {}: {} - {}'.format(
+                    element['id'], e.status_code, e.content))
+
+
+def push_zone(page, name, region, act_id):
     # create the element on the page
     # turn text representation of the coordinates into list of coordinates
-    polygon = json_act["Graphical_coord"]
+    polygon = region["Graphical_coord"]
     polygon = polygon.split(" ")
     coordinates = []
     for coor in polygon:
@@ -117,55 +189,55 @@ def push_element(page, act_name, json_act, data):
             if coor[t] > dim[t]:
                 coor[t] = dim[t]
         coordinates.append(coor)
+
     # request to the API using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElement
     try:
-        body = {"type": "act", "name": act_name, "corpus": CORPUS_ID, "parent": page['id'],
+        body = {"type": "text_zone", "name": "Acte " + name, "corpus": CORPUS_ID, "parent": page["id"],
                 "image": page["zone"]["image"]["id"], "polygon": coordinates}
         logger.info(f'creating element with body {body}')
         element = ark_client.request("CreateElement", body=body)
     except ErrorResponse as e:
-        logger.error('Failed creating element {}: {} - {}'.format(act_name, e.status_code, e.content))
+        logger.error('Failed creating element {}: {} - {}'.format(name, e.status_code, e.content))
         return
-    # if the element was created, add transcription to the element
-    text = '\n'.join(json_act["Texte"])
 
+    # request to this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElementParent to link with act
+    try:
+        logger.info(f'add new parent {act_id}')
+        parent = ark_client.request("CreateElementParent", child=element['id'], parent=act_id)
+    except ErrorResponse as e:
+        logger.error('Failed creating parent on element {}: {}{} - {} - {}'.format(
+            element['id'], "with ", act_id, e.status_code, e.content))
+        return
+
+    # if the element was created, add transcription to the element
+    text = '\n'.join(region["Texte"])
     # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateTranscription
     try:
         logger.info(f'add transcription {text}')
-        transcription = ark_client.request("CreateTranscription", id=element['id'], body={"text": text})
+        ark_client.request("CreateTranscription", id=element['id'], body={"text": text})
     except ErrorResponse as e:
         logger.error('Failed creating transcription on element {}: {} - {}'.format(
-            element_id, e.status_code, e.content))
+            element['id'], e.status_code, e.content))
         return
-    for date in data["Date-normalisee"]:
-        date_type = date["type"]
-        if date["year"]:  # Fonction pour construire ma forme iso
-            date["forme normalisee"] = str(date["year"])
-            if date["month"]:
-                if len(str(date["month"])) == 1:
-                    date["month"] = "0" + str(date["month"])
-                date["forme normalisee"] = date["forme normalisee"] + "-" + \
-                                               str(date["month"])
-                if date["day"]:
-                    if len(str(date["day"])) == 1:
-                        date["day"] = "0" + str(date["day"])
-                    date["forme normalisee"] = date["forme normalisee"] + "-" + \
-                                                   str(date["day"])
-        else:
-            date["forme normalisee"] = None
-        data[date_type] = date["forme normalisee"]
-    for e in data:
-        if e in ["Folio_start", "Folio_end", "Act_N", "Language", "Regeste", "when", "notBefore", "notAfter"]:
-            # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
-            try:
-                body={"type": "text", "name": e, "value": data[e]}
-                logger.info(f'creating metadata {body}')
-                metadata = ark_client.request("CreateMetaData", id=element['id'], body=body)
-            except ErrorResponse as e:
-                logger.error('Failed creating metadata on element {}: {} - {}'.format(
-                    element['id'], e.status_code, e.content))
 
-
+    # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
+    if region["type_act"] == "AI":
+        place = "initial"
+    elif region["type_act"] == "AF":
+        place = "final"
+    elif region["type_act"] == "AM":
+        place = "middle"
+    elif region["type_act"] == "AS":
+        place = "additional"
+    elif region["type_act"] == "AC":
+        place = "complete"
+    try:
+        body = {"type": "text", "name": "Place in act", "value": place}
+        logger.info(f'creating metadata {body}')
+        ark_client.request("CreateMetaData", id=element['id'], body=body)
+    except ErrorResponse as e:
+        logger.error('Failed creating metadata on element {}: {} - {}'.format(
+            element['id'], e.status_code, e.content))
 
 def main():
     """Collect arguments and run."""
@@ -182,7 +254,6 @@ def main():
     # log in on arkindex with your credentials
     ark_client.configure(**options_from_env())
     parse_json(args['json'])
-
 
 
 if __name__ == '__main__':
