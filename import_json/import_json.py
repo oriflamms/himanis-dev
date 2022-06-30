@@ -10,7 +10,8 @@ import json, csv
 ark_client = ArkindexClient()
 
 # The id of the Himanis corpus on Arkindex
-CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6"
+CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6" #Corpus Himanis
+#CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480" #Corpus d'essai avant import sur Himanis
 
 # Use a table to associate image to page name on Arkindex
 table = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
@@ -150,29 +151,43 @@ def push_act(volume_id, act_name, data):
                                                    str(date["day"])
             else:
                 date["forme normalisee"] = None
-            data["Date"] = data["Date-normalisee"][0]["forme normalisee"]
+            data["Date_Arkindex"] = data["Date-normalisee"][0]["forme normalisee"]
         else:
             for extreme in data["Date-normalisee"]:
                 if extreme["type"] == "notBefore":
                     debut = extreme["year"]
                 elif extreme["type"] == "notAfter":
                     fin = extreme["year"]
-            data["Date"] = str(debut) + "-" + str(fin)
+            data["Date_Arkindex"] = str(debut) + "-" + str(fin)
+    if data["Inventory_Name"] and data["Inventory_Nr"]:
+        data["Inventory_Reference"] = data["Inventory_Name"] + "_" + data["Inventory_Nr"]
+    else:
+        data["Inventory_Reference"] = ""
+    data["languages"] = data["normalized_language"]["language"]
 
     for e in data:
-        if e in ["Folio_start", "Folio_end", "Act_N", "Language", "Regeste", "Date"]:
+        # TODO : est-ce que language est une métadonnée répétable ?
+        metadata = [["Act_N", "Languages", "Inventory_Reference", "Date_Arkindex", "Regeste"],
+        ["himanisId", "language", "inventoryReference", "date", "abstract"]]
+        if e in metadata[0]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
-            if e == "Date":
-                type = "date"
+            if e == "Date_Arkindex":
+                type_data = "date"
             else:
-                type = "text"
-            try:
-                body = {"type": type, "name": e, "value": data[e]}
-                logger.info(f'creating metadata {body}')
-                metadata = ark_client.request("CreateMetaData", id=element['id'], body=body)
-            except ErrorResponse as e:
-                logger.error('Failed creating metadata on element {}: {} - {}'.format(
-                    element['id'], e.status_code, e.content))
+                type_data = "text"
+            if type(data[e]) != list:  # Pour que toutes les données soient sous forme d'une liste itérable
+                data[e] = [data[e]]
+            for contenu in data[e]:
+                print(type(e), e)
+                try:
+                    body = {"type": type_data, "name": metadata[1][metadata[0].index(e)], "value": contenu}
+                    logger.info(f'creating metadata {body}')
+                    print("beginning")
+                    ark_client.request("CreateMetaData", id=element['id'], body=body)
+                    print("end")
+                except ErrorResponse as e:
+                    logger.error('Failed creating metadata on element {}: {} - {}'.format(
+                        element['id'], e.status_code, e.content))
 
 
 def push_zone(page, name, region, act_id):
@@ -203,7 +218,7 @@ def push_zone(page, name, region, act_id):
     # request to this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateElementParent to link with act
     try:
         logger.info(f'add new parent {act_id}')
-        parent = ark_client.request("CreateElementParent", child=element['id'], parent=act_id)
+        ark_client.request("CreateElementParent", child=element['id'], parent=act_id)
     except ErrorResponse as e:
         logger.error('Failed creating parent on element {}: {}{} - {} - {}'.format(
             element['id'], "with ", act_id, e.status_code, e.content))
@@ -228,11 +243,11 @@ def push_zone(page, name, region, act_id):
     elif region["type_act"] == "AM":
         place = "middle"
     elif region["type_act"] == "AS":
-        place = "additional"
+        place = "supplemental"
     elif region["type_act"] == "AC":
         place = "complete"
     try:
-        body = {"type": "text", "name": "Place in act", "value": place}
+        body = {"type": "text", "name": "Part", "value": place}
         logger.info(f'creating metadata {body}')
         ark_client.request("CreateMetaData", id=element['id'], body=body)
     except ErrorResponse as e:
