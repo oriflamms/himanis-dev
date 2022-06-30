@@ -10,8 +10,8 @@ import json, csv
 ark_client = ArkindexClient()
 
 # The id of the Himanis corpus on Arkindex
-CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6" #Corpus Himanis
-#CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480" #Corpus d'essai avant import sur Himanis
+#CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6" #Corpus Himanis
+CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480" #Corpus d'essai avant import sur Himanis
 
 # Use a table to associate image to page name on Arkindex
 table = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
@@ -169,7 +169,7 @@ def push_act(volume_id, act_name, data):
         # TODO : est-ce que language est une métadonnée répétable ?
         metadata = [["Act_N", "Languages", "Inventory_Reference", "Date_Arkindex", "Regeste"],
         ["himanisId", "language", "inventoryReference", "date", "abstract"]]
-        if e in metadata[0]:
+        if data[e] and e in metadata[0]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             if e == "Date_Arkindex":
                 type_data = "date"

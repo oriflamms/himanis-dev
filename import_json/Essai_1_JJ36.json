@@ -1,44 +1,58 @@
 {
   "JJ036": [
-    {
-      "Acte_1": {
-        "Provisory_index_1": "227",
-        "Volume": "JJ036",
-        "Act_N": "1",
-        "Folio_start": "1r",
-        "VOL_FOL_START": "JJ036_1r",
-        "Folio_end": "1r",
-        "Language": "",
-        "Inventory_Name": "",
-        "Inventory_Nr": "",
-        "ImageStart_UPVLC_BVMM": "FRCHANJJ_JJ036_0002R_A.TIF",
-        "ImageStart_READ": "FRCHANJJ_JJ036_0002R_A.TIF",
-        "F": "",
-        "Provisory_index_2": 227.0,
-        "Text_Region": [
-          {
-            "Reference": "FRCHANJJ_JJ036_0002R_A",
-            "type_act": "AC",
-            "Region": "TextRegion_1501510188814_787",
-            "Graphical_coord": "2183,771 18,771 0,0 2183,0",
-            "Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ036/DEPOT/FRCHANJJ_JJ036_0002R_A/0,0,2202,772/600,/0/default.jpg",
-            "Texte": [
-              "Fanentu mandamentum retis in ville de Cleilae en e r e e ",
-              "etc. pour cause certaine et necessaire qui touche l'estat de nous et de",
-              "Atout nostre douaine. nous vous mandons et commandons que vous",
-              "sanz nul defaut souffisanment appareill\u00e9 ou armes et en chevans, selon nostre estat",
-              "lonc ce que vous deuez, et enontre si souffisanment que nous nous en doient le",
-              "pour lirs en paiez, soiez \u00e0 arraz \u00e0 cest premier jour de juing prouchien venant",
-              "",
-              "pour faire et acomplir diligenment ce que vous sera commande et emoint de pai",
-              "anous. Donn\u00e9 \u00e0 Paris, le laundi empr\u00e8s l'invencion sSainte Croiz, li",
-              "leenz et deus"
-            ]
-          }
-        ],
-        "Date": "1303",
-        "Regeste": "Without subject"
-      }
-    }
+{
+			"Acte_1": {
+				"Provisory_index_1": "227",
+				"Volume": "JJ036",
+				"Act_N": "1",
+				"Folio_start": "1r",
+				"VOL_FOL_START": "JJ036_1r",
+				"Folio_end": "1r",
+				"Language": "",
+				"Inventory_Name": "",
+				"Inventory_Nr": "",
+				"ImageStart_UPVLC_BVMM": "FRCHANJJ_JJ036_0002R_A.TIF",
+				"ImageStart_READ": "FRCHANJJ_JJ036_0002R_A.TIF",
+				"F": "",
+				"Provisory_index_2": 227.0,
+				"Text_Region": [
+					{
+						"Reference": "FRCHANJJ_JJ036_0002R_A",
+						"type_act": "AC",
+						"Region": "TextRegion_1501510188814_787",
+						"Graphical_coord": "2183,771 18,771 0,0 2183,0",
+						"Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ036/DEPOT/FRCHANJJ_JJ036_0002R_A/0,0,2202,772/600,/0/default.jpg",
+						"Texte": [
+							"Fanentu mandamentum retis in ville de Cleilae en e r e e ",
+							"etc. pour cause certaine et necessaire qui touche l'estat de nous et de",
+							"Atout nostre douaine. nous vous mandons et commandons que vous",
+							"sanz nul defaut souffisanment appareillé ou armes et en chevans, selon nostre estat",
+							"lonc ce que vous deuez, et enontre si souffisanment que nous nous en doient le",
+							"pour lirs en paiez, soiez à arraz à cest premier jour de juing prouchien venant",
+							"",
+							"pour faire et acomplir diligenment ce que vous sera commande et emoint de pai",
+							"anous. Donné à Paris, le laundi emprès l'invencion sSainte Croiz, li",
+							"leenz et deus"
+						]
+					}
+				],
+				"Date": "1303",
+				"Regeste": "Without subject",
+				"Date-normalisee": [
+					{
+						"type": "when",
+						"year": 1303,
+						"month": null,
+						"day": null
+					}
+				],
+				"normalized_language": {
+					"norme": "iso-639-3",
+					"language": [
+						"und"
+					]
+				}
+			}
+		}
 	]
 }

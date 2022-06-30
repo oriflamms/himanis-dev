@@ -1,0 +1,72 @@
+{
+  "JJ035": [
+		{
+			"Acte_4": {
+				"Provisory_index_1": "4",
+				"Volume": "JJ035",
+				"Act_N": "4",
+				"Folio_start": "1r",
+				"VOL_FOL_START": "JJ035_1r",
+				"Folio_end": "001v",
+				"Language": "",
+				"Inventory_Name": "",
+				"Inventory_Nr": "",
+				"ImageStart_UPVLC_BVMM": "FRCHANJJ_JJ035_0016R_A.TIF",
+				"ImageStart_READ": "FRCHANJJ_JJ035_0016R_A.TIF",
+				"F": "",
+				"Provisory_index_2": 4.0,
+				"Text_Region": [
+					{
+						"Reference": "FRCHANJJ_JJ035_0016R_A",
+						"type_act": "AI",
+						"Region": "TextRegion_1501501267991_162",
+						"Graphical_coord": "2703,3251 0,3251 0,2264 2703,2264",
+						"Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ035/DEPOT/FRCHANJJ_JJ035_0016R_A/0,2264,2704,988/600,/0/default.jpg",
+						"Texte": [
+							"",
+							"no",
+							"",
+							"",
+							"c",
+							"Philippus, etc. subditorum nostrorum incommodis quantum permittit temporis condicio cupientes occarre, et eorum ettilita",
+							"tibus de berignitate regia providere, mandamus tibi quatinus homines dilecti et fidelis nostri ralis, qui non habent in bonis quoli",
+							"libet centum libras parisiensium, rel qui non habent in lonis, mobilibus et immobilibus per totum ducentarum libra tuonis vulee",
+							"quorum valorm mobilium summam quadragintu librarum turonensium non excedit, ad eundum in presentem nostrum flatudiente extitum",
+							"non apellas, quos ex causa hujusmodi a predicto exercitu ad presens haberi volumus, excusatos, illos aut quod centu libr",
+							"in mobilibus vel ducentas in mobilibus et immobilibus mr predicto haberi constitit ad eundum in hujuisoi excitum suis"
+						]
+					},
+					{
+						"Reference": "FRCHANJJ_JJ035_0016V_A",
+						"type_act": "AF",
+						"Region": "TextRegion_1501501282696_165",
+						"Graphical_coord": "2679,591 0,591 0,0 2679,0",
+						"Address_bvmm": "https://iiif.irht.cnrs.fr/iiif/France/Paris/Archives_nationales/FRCHANJJ_JJ035/DEPOT/FRCHANJJ_JJ035_0016V_A/0,0,2680,592/600,/0/default.jpg",
+						"Texte": [
+							"dilacione compellas, hanc aut ordinacionem nostram ad finem primi mensis nostre prime subvencionis servari",
+							"volumus et effectum habere, ita quod financie per nos, occasione hujusmodi prime subvencionis, cum gentibus nostris facere",
+							"pro mense predicto valeant et habeant roboris firmitatem. Actm apud Vicensi, die jovis post termitatem",
+							"anno Domini m. ccc. secundo."
+						]
+					}
+				],
+				"Date": "1302",
+				"Regeste": "Without subject",
+				"Date-normalisee": [
+					{
+						"type": "when",
+						"year": 1302,
+						"month": null,
+						"day": null
+					}
+				],
+				"normalized_language": {
+					"norme": "iso-639-3",
+					"language": [
+						"und"
+					]
+				}
+			}
+		}
+	]
+}
