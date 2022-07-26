@@ -6,7 +6,8 @@ Script pour requêter automatiquement toutes les éléments page d'un corpus Ark
 le nom du fichier image qui correspond à cet élément.
 '''
 
-result = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
+# result = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
+result = "/home/reignier/Bureau/Himanis/erreurs_alignement_arkindex.csv"
 
 # create an arkindex client
 ark_client = ArkindexClient()
@@ -28,7 +29,7 @@ def main():
         spamwriter = csv.writer(f, delimiter='\t')
         for row in file:
             spamwriter.writerow(row)
-        for i in range(3, 159):
+        for i in range(1, 159):
             image_folio = {}
             # log in on arkindex with your credentials
             ark_client.configure(**options_from_env())
@@ -37,6 +38,7 @@ def main():
                 image_folio[page['zone']['image']['url']] = page['name']
             for url in image_folio:
                 spamwriter.writerow([url, image_folio[url]])
+
 
 if __name__ == '__main__':
     main()

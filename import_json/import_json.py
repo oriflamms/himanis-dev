@@ -10,8 +10,8 @@ import json, csv
 ark_client = ArkindexClient()
 
 # The id of the Himanis corpus on Arkindex
-#CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6" #Corpus Himanis
-CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480" #Corpus d'essai avant import sur Himanis
+CORPUS_ID = "ed249464-96c5-4ca6-a717-f99fc9bf4ce6"  # Corpus Himanis
+# CORPUS_ID = "dbf1fc04-d825-4a3a-b3e4-60ff010a9480" #Corpus d'essai avant import sur Himanis
 
 # Use a table to associate image to page name on Arkindex
 table = "/home/reignier/Bureau/Himanis/table_concordance_images_folio.csv"
@@ -27,6 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
+
 
 def parse_json(json_file):
     logger.info(f'parsing {json_file}')
@@ -45,10 +46,15 @@ def parse_json(json_file):
                     push_act(volume_id, act["Act_N"], act)  # D'abord je crée les actes
                     for region in act["Text_Region"]:  # Puis je crée les zones d'images correspondant
                         folio = get_folio(region["Address_bvmm"])
-                        page = get_page(volume_id, folio)
-                        act_parent = get_act(volume_id, act["Act_N"])
-                        if page and act_parent:
-                            push_zone(page, act["Act_N"], region, act_parent['id'])
+                        if folio:
+                            page = get_page(volume_id, folio)
+                            logger.info(f'found id {page["id"]}')
+                            act_parent = get_act(volume_id, act["Provisory_index_3"])
+                            logger.info(f'found id {act_parent["id"]}')
+                            if page and act_parent:
+                                push_zone(page, act["Act_N"], region, act_parent['id'])
+                            else:
+                                continue
                         else:
                             continue
                 else:
@@ -60,11 +66,13 @@ def get_folio(address_bvmm):
     function that gives name of the folio on Arkindex with an url address
     """
     address = address_bvmm.split(",")[0]  # Je sectionne l'url au niveau des coordonnées
-    while address[-1] != "/":  # J'enlève tout ce qui précède le dernier slash
-        address = address[:-1]
-    address = address[:-1]  # J'enlève aussi le dernier slash
-    folio = files[address]
-    return folio
+    if "https://iiif.irht.cnrs.fr" in address:  # Je vérifie que l'adresse n'est pas une valeur aberrante
+        while address[-1] != "/":  # J'enlève tout ce qui précède le dernier slash
+            address = address[:-1]
+        address = address[:-1]  # J'enlève aussi le dernier slash
+        if address in files:  # Je vérifie que l'adresse renvoi bien vers une image présente dans Arkindex
+            folio = files[address]
+            return folio
 
 
 def get_volume_id(volume_name):
@@ -94,8 +102,9 @@ def get_page(volume_id, page_name):
     function that gets the page with the name page_name from volume with volume_id
     """
     # try a request to the api to get the page with the name page_name
-    while len(page_name) != 4:
-        page_name = "0" + page_name
+    if page_name.isnumeric():
+        while len(page_name) < 4:
+            page_name = "0" + page_name
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElementChildren
         pages = ark_client.paginate("ListElementChildren", id=volume_id, name=page_name)
@@ -115,14 +124,13 @@ def get_act(volume_id, act_name):
     # try a request to the api to get the act with the name act_name
     try:
         # call to the API for this endpoint https://arkindex.teklia.com/api-docs/#operation/ListElementChildren
-        acts = ark_client.paginate("ListElementChildren", id=volume_id, name=act_name)
+        acts = ark_client.paginate("ListElementChildren", id=volume_id, metadata_name="himanisId",
+                                   metadata_value=act_name, type="act")
     except ErrorResponse as e:
         logger.error('Failed getting folder elements {} with name {}: {} - {}'.format(
             volume_id, act_name, e.status_code, e.content))
     for act in acts:
-        if act["name"] == act_name:
-            return act
-    return None
+        return act
 
 
 def push_act(volume_id, act_name, data):
@@ -163,28 +171,27 @@ def push_act(volume_id, act_name, data):
         data["Inventory_Reference"] = data["Inventory_Name"] + "_" + data["Inventory_Nr"]
     else:
         data["Inventory_Reference"] = ""
+    print(data["normalized_language"])
     data["languages"] = data["normalized_language"]["language"]
 
     for e in data:
-        # TODO : est-ce que language est une métadonnée répétable ?
-        metadata = [["Act_N", "Languages", "Inventory_Reference", "Date_Arkindex", "Regeste"],
-        ["himanisId", "language", "inventoryReference", "date", "abstract"]]
+        metadata = [["Provisory_index_3", "languages", "Inventory_Reference", "Date_Arkindex", "Regeste", "Date"],
+        ["himanisId", "language", "inventoryReference", "date", "abstract", "date_orig"]]
         if data[e] and e in metadata[0]:
             # request to the api using this endpoint https://arkindex.teklia.com/api-docs/#operation/CreateMetaData
             if e == "Date_Arkindex":
                 type_data = "date"
             else:
                 type_data = "text"
-            if type(data[e]) != list:  # Pour que toutes les données soient sous forme d'une liste itérable
-                data[e] = [data[e]]
-            for contenu in data[e]:
-                print(type(e), e)
+            if type(data[e]) == list:  # Pour que toutes les données soient sous forme d'une liste itérable
+                metadata_arkindex = data[e]
+            else:
+                metadata_arkindex = [data[e]]
+            for contenu in metadata_arkindex:
                 try:
                     body = {"type": type_data, "name": metadata[1][metadata[0].index(e)], "value": contenu}
                     logger.info(f'creating metadata {body}')
-                    print("beginning")
                     ark_client.request("CreateMetaData", id=element['id'], body=body)
-                    print("end")
                 except ErrorResponse as e:
                     logger.error('Failed creating metadata on element {}: {} - {}'.format(
                         element['id'], e.status_code, e.content))
@@ -247,7 +254,7 @@ def push_zone(page, name, region, act_id):
     elif region["type_act"] == "AC":
         place = "complete"
     try:
-        body = {"type": "text", "name": "Part", "value": place}
+        body = {"type": "text", "name": "part", "value": place}
         logger.info(f'creating metadata {body}')
         ark_client.request("CreateMetaData", id=element['id'], body=body)
     except ErrorResponse as e:

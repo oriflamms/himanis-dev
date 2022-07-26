@@ -1,8 +1,10 @@
 import json
 import csv
 
-json_file = "/home/reignier/Bureau/Himanis/himanis-all-acts-json-JJ35-JJ91-metadata-htr.json"
+json_file = "/home/reignier/Bureau/Himanis/himanis-all-acts-json-JJ35-JJ91-metadata-htr_with_date_language_index.json"
 
+#index = []
+erreurs = []
 
 def metadata(file):
     with open(file, 'r') as f:
@@ -17,10 +19,12 @@ def metadata(file):
                     meta = meta + "-" + str(type(acte[meta]))  # J'associe chaque méta-donnée à son type
                     if meta == "Text_Region-<class 'list'>":  # Je récupère les métadonnées contenues dan les text_region
                         for t in acte["Text_Region"]:
+                            if "https://iiif.irht.cnrs.fr" not in t["Address_bvmm"]:
+                            # Pour identifier les éléments anormaux dans cette donnée
+                                erreurs.append(acte)
                             for a in t:
                                 a = "Text_region_" + a + str(type(t[a]))
                                 if a == "Text_region_Texte<class 'list'>":  # Je vérifie que ces éléments sont des chaînes
-                                    nbr = 0
                                     for text in t["Texte"]:
                                         if type(text) != str:
                                             print("erreur")
@@ -29,7 +33,15 @@ def metadata(file):
                                     metadata[a] = 1
                                 else:
                                     metadata[a] += 1
-                    #if meta == "Language-<class 'str'>":
+                    '''if meta == "Provisory_index_1-<class 'str'>":
+                        index.append(int(acte["Provisory_index_1"].split("bis")[0]))'''
+                    '''if meta == "Provisory_index_1-<class 'str'>": 
+                        # Pour vérifier si la donnée est systématiquement pleine
+                        if not acte["Provisory_index_1"]:
+                            meta = "Provisory_index_1-<class 'str'>_empty"
+                        else:
+                            meta = "Provisory_index_1-<class 'str'>_full"'''
+                    # if meta == "Language-<class 'str'>": # Pour compter les langues mentionnées
                     #    meta = acte["Language"]
                     if meta not in metadata:  # Je crée une entrée par type de métadonnée
                         metadata[meta] = 1
@@ -40,6 +52,12 @@ def metadata(file):
 
 
 metadata(json_file)
+
+with open("/home/reignier/Bureau/Himanis/zone_images_vides.csv", 'w', encoding="utf8", newline='') as f:
+    spamwriter = csv.writer(f, delimiter='\t')
+    for e in erreurs:
+        spamwriter.writerow([e["Volume"], e["Folio_start"], e["Provisory_index_3"], [t["Address_bvmm"] for t in e["Text_Region"]]])
+
 
 
 '''erreurs = [("Act_N", "Volume + Folio_start", "VOL_FOL_START")]
@@ -67,3 +85,12 @@ with open("/home/reignier/Bureau/Himanis/incoherences_2.csv", 'w', encoding="utf
     spamwriter = csv.writer(f, delimiter='\t')
     for e in erreurs:
         spamwriter.writerow(e)'''
+
+"""index.sort()  # To know if provisory index are systematic or not
+t = 1
+for i in index:
+    if int(i) == t:
+        t +=1
+    else:
+        print(i)
+        t = int(i) + 1"""
